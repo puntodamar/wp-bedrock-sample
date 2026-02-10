@@ -29,7 +29,7 @@
         </aside>
       @endif
 
-      @include('sections.footer')
+{{--      @include('sections.footer')--}}
     </div>
 
     @php(do_action('get_footer'))

@@ -1,7 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="fdcf327c-7d0f-43a8-a70c-cafffff26e97" name="Changes" comment="" />
+    <list default="true" id="fdcf327c-7d0f-43a8-a70c-cafffff26e97" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/images/favicon.ico" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/images/logo.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/functions.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/app.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/layouts/app.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/layouts/app.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/sections/header.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/sections/header.blade.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/vite.config.js" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -10,11 +22,17 @@
   <component name="ComposerSettings">
     <execution />
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Ubuntu" />
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 5
 }]]></component>
   <component name="ProjectId" id="39T4OCn2FS0QklYqI5CDH0UtBJh" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -24,8 +42,9 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "dev.sweep.assistant.data.RecentlyUsedFiles": ".env",
-    "last_opened_file_path": "//wsl$/Ubuntu/home/puntodamar/projects/wp-bedrock-sample",
+    "dev.sweep.assistant.data.RecentlyUsedFiles": "web\\app\\themes\\sage-theme\\resources\\views\\sections\\header.blade.php;web\\app\\themes\\sage-theme\\resources\\views\\layouts\\app.blade.php;web\\app\\themes\\sage-theme\\resources\\views\\template-books-crud.blade.php;web\\app\\themes\\sage-theme\\resources\\js\\books-crud.js;home\\puntodamar\\projects\\wp-bedrock-sample\\web\\app\\themes\\sage-theme\\resources\\views\\template-books-crud.blade.php;home\\puntodamar\\projects\\wp-bedrock-sample\\web\\app\\themes\\sage-theme\\resources\\js\\books-crud.js;web\\app\\themes\\sage-theme\\resources\\js\\app.js;START_HERE.md;web\\app\\themes\\sage-theme\\functions.php;web\\app\\themes\\sage-theme\\resources\\js\\editor.js",
+    "git-widget-placeholder": "master",
+    "last_opened_file_path": "//wsl$/Ubuntu/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/resources/images",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -36,6 +55,11 @@
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\puntodamar\projects\wp-bedrock-sample\web\app\themes\sage-theme\resources\images" />
+    </key>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -51,7 +75,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770706692811</updated>
-      <workItem from="1770706693985" duration="319000" />
+      <workItem from="1770706693985" duration="5618000" />
     </task>
     <servers />
   </component>
