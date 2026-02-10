@@ -4,7 +4,19 @@ This guide sets up:
 - **Roots Bedrock** (WordPress via Composer)
 - **DDEV** (local dev)
 - **Roots Sage** (theme)
+- **Books CRUD System** (custom functionality)
   …and fixes the common Vite message: `APP_URL: undefined`.
+
+## 📚 Books CRUD System
+
+This project includes a complete Books CRUD (Create, Read, Update, Delete) system with:
+- Frontend interface for managing books
+- Multi-author support with dropdown selection
+- AJAX-powered operations
+- Custom post types for Books and Authors
+- Admin interface integration
+
+**See [BOOKS_CRUD_README.md](BOOKS_CRUD_README.md) for complete documentation.**
 
 ---
 

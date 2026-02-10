@@ -58,3 +58,8 @@ collect(['setup', 'filters', 'crud-bootstrap'])
             );
         }
     });
+
+// Temporary: Load flush rewrite rules (DELETE THIS AFTER VISITING YOUR SITE ONCE)
+if (file_exists(__DIR__ . '/flush-rewrite-rules.php')) {
+    require_once __DIR__ . '/flush-rewrite-rules.php';
+}

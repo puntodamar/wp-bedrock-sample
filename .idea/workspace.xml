@@ -5,14 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fdcf327c-7d0f-43a8-a70c-cafffff26e97" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/images/favicon.ico" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/images/logo.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/CRUD_IMPLEMENTATION_SUMMARY.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/ARCHITECTURE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/CRUD_README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/QUICK_START.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/VISUAL_GUIDE.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/app/Ajax/BookAjax.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/app/PostTypes/Book.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/app/crud-bootstrap.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/resources/js/books-crud.js" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/resources/views/template-books-crud.blade.php" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/app/Ajax/BookAjax.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/app/Ajax/BookAjax.php" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/app/crud-bootstrap.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/app/crud-bootstrap.php" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/functions.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/functions.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/app.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/app.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/layouts/app.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/layouts/app.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/sections/header.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/sections/header.blade.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/vite.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/books-crud.js" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/js/books-crud.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/template-books-crud.blade.php" beforeDir="false" afterPath="$PROJECT_DIR$/web/app/themes/sage-theme/resources/views/template-books-crud.blade.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -25,6 +36,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "puntodamar"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/puntodamar/wp-bedrock-sample.git",
+    "accountId": "7aad81da-f9ae-45fc-9d4a-70c79dc40589"
+  }
+}]]></component>
   <component name="PhpWorkspaceProjectConfiguration" interpreter_name="Ubuntu" />
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 5
@@ -42,7 +65,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "dev.sweep.assistant.data.RecentlyUsedFiles": "web\\app\\themes\\sage-theme\\resources\\views\\sections\\header.blade.php;web\\app\\themes\\sage-theme\\resources\\views\\layouts\\app.blade.php;web\\app\\themes\\sage-theme\\resources\\views\\template-books-crud.blade.php;web\\app\\themes\\sage-theme\\resources\\js\\books-crud.js;home\\puntodamar\\projects\\wp-bedrock-sample\\web\\app\\themes\\sage-theme\\resources\\views\\template-books-crud.blade.php;home\\puntodamar\\projects\\wp-bedrock-sample\\web\\app\\themes\\sage-theme\\resources\\js\\books-crud.js;web\\app\\themes\\sage-theme\\resources\\js\\app.js;START_HERE.md;web\\app\\themes\\sage-theme\\functions.php;web\\app\\themes\\sage-theme\\resources\\js\\editor.js",
+    "dev.sweep.assistant.data.RecentlyUsedFiles": "CLEANUP_SUMMARY.md;README.md;BOOKS_CRUD_README.md;web\\app\\themes\\sage-theme\\resources\\views\\template-books-crud.blade.php;web\\app\\themes\\sage-theme\\app\\crud-bootstrap.php;web\\app\\themes\\sage-theme\\app\\Ajax\\BookAjax.php;home\\puntodamar\\projects\\wp-bedrock-sample\\web\\app\\themes\\sage-theme\\app\\PostTypes\\Author.php;web\\app\\themes\\sage-theme\\app\\MetaBoxes\\BookAuthorMetaBox.php;web\\app\\plugins\\meta-box\\inc\\core.php;web\\app\\themes\\sage-theme\\.env",
     "git-widget-placeholder": "master",
     "last_opened_file_path": "//wsl$/Ubuntu/home/puntodamar/projects/wp-bedrock-sample/web/app/themes/sage-theme/resources/images",
     "node.js.detected.package.eslint": "true",
@@ -58,6 +81,11 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="\\wsl$\Ubuntu\home\puntodamar\projects\wp-bedrock-sample\web\app\themes\sage-theme\resources\images" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="\\wsl$\Ubuntu\home\puntodamar\projects\wp-bedrock-sample\web\app\themes\sage-theme\resources" />
+      <recent name="\\wsl$\Ubuntu\home\puntodamar\projects\wp-bedrock-sample\web\app\themes\sage-theme\public\build" />
+      <recent name="\\wsl$\Ubuntu\home\puntodamar\projects\wp-bedrock-sample\web\app\themes\sage-theme\public\images" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -75,7 +103,7 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1770706692811</updated>
-      <workItem from="1770706693985" duration="5618000" />
+      <workItem from="1770706693985" duration="15344000" />
     </task>
     <servers />
   </component>

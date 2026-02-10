@@ -1,0 +1,160 @@
+<?php
+
+/**
+ * Book Author Meta Box
+ *
+ * This file creates a custom meta box in the Book edit screen that allows
+ * selecting one or more authors to associate with a book.
+ *
+ * @package App\MetaBoxes
+ */
+
+namespace App\MetaBoxes;
+add_action('init', function () {
+    error_log('Book authors meta box file loaded ✅');
+});
+/**
+ * Add the Author Selection meta box to the Book edit screen
+ */
+add_action('add_meta_boxes', function () {
+    add_meta_box(
+        'book_authors_meta_box',           // Unique ID for the meta box
+        __('Book Authors', 'sage'),        // Title displayed in the meta box
+        'App\MetaBoxes\render_book_authors_meta_box', // Callback function to render the content
+        'book',                            // Post type where this meta box appears
+        'side',                            // Context: 'normal', 'side', or 'advanced'
+        'default'                          // Priority: 'high', 'core', 'default', or 'low'
+    );
+});
+
+/**
+ * Render the Author Selection meta box content
+ *
+ * This function displays a checklist of all available authors,
+ * with checkboxes for the ones currently associated with this book.
+ *
+ * @param \WP_Post $post The current post object
+ */
+function render_book_authors_meta_box($post) {
+    // Add nonce for security verification
+    wp_nonce_field('book_authors_meta_box', 'book_authors_meta_box_nonce');
+
+    // Get currently selected author IDs
+    $selected_authors = get_post_meta($post->ID, 'author_ids', true);
+    if (!is_array($selected_authors)) {
+        $selected_authors = [];
+    }
+
+    // Query all authors
+    $authors = get_posts([
+        'post_type'      => 'author',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'post_status'    => 'publish',
+    ]);
+
+    if (empty($authors)) {
+        echo '<p>' . __('No authors found. Please create authors first.', 'sage') . '</p>';
+        echo '<p><a href="' . admin_url('post-new.php?post_type=author') . '" class="button">' . __('Add New Author', 'sage') . '</a></p>';
+        return;
+    }
+
+    echo '<div style="max-height: 300px; overflow-y: auto;">';
+    echo '<p><strong>' . __('Select authors for this book:', 'sage') . '</strong></p>';
+
+    foreach ($authors as $author) {
+        $checked = in_array($author->ID, $selected_authors) ? 'checked="checked"' : '';
+        echo '<label style="display: block; margin-bottom: 8px;">';
+        echo '<input type="checkbox" name="book_author_ids[]" value="' . esc_attr($author->ID) . '" ' . $checked . '> ';
+        echo esc_html($author->post_title);
+        echo '</label>';
+    }
+
+    echo '</div>';
+
+    echo '<p style="margin-top: 10px;"><em>' . __('Check one or more authors to associate with this book.', 'sage') . '</em></p>';
+}
+
+/**
+ * Save the selected authors when the book is saved
+ *
+ * This function is hooked to 'save_post_book' and runs whenever a book is saved.
+ * It validates the nonce and saves the selected author IDs to post meta.
+ *
+ * @param int $post_id The ID of the post being saved
+ */
+add_action('save_post_book', function ($post_id) {
+    // Check if nonce is set
+    if (!isset($_POST['book_authors_meta_box_nonce'])) {
+        return;
+    }
+
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['book_authors_meta_box_nonce'], 'book_authors_meta_box')) {
+        return;
+    }
+
+    // Check if this is an autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Get the selected author IDs from the form
+    $author_ids = isset($_POST['book_author_ids']) ? array_map('intval', $_POST['book_author_ids']) : [];
+
+    // Save the author IDs to post meta
+    update_post_meta($post_id, 'author_ids', $author_ids);
+}, 10, 1);
+
+/**
+ * Display authors in the admin columns list
+ */
+add_filter('manage_book_posts_columns', function ($columns) {
+    // Add a new column for authors after the title
+    $new_columns = [];
+    foreach ($columns as $key => $value) {
+        $new_columns[$key] = $value;
+        if ($key === 'title') {
+            $new_columns['book_authors'] = __('Authors', 'sage');
+        }
+    }
+    return $new_columns;
+});
+
+/**
+ * Populate the authors column with data
+ */
+add_action('manage_book_posts_custom_column', function ($column, $post_id) {
+    if ($column === 'book_authors') {
+        $author_ids = get_post_meta($post_id, 'author_ids', true);
+
+        if (empty($author_ids) || !is_array($author_ids)) {
+            echo '<em>' . __('No authors', 'sage') . '</em>';
+            return;
+        }
+
+        $author_names = [];
+        foreach ($author_ids as $author_id) {
+            $author = get_post($author_id);
+            if ($author) {
+                $author_names[] = esc_html($author->post_title);
+            }
+        }
+
+        echo !empty($author_names) ? implode(', ', $author_names) : '<em>' . __('No authors', 'sage') . '</em>';
+    }
+}, 10, 2);
+
+/**
+ * Make the authors column sortable
+ */
+add_filter('manage_edit-book_sortable_columns', function ($columns) {
+    $columns['book_authors'] = 'book_authors';
+    return $columns;
+});

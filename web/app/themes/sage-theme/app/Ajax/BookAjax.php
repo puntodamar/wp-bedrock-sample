@@ -57,6 +57,24 @@ add_action('wp_ajax_get_books', function () {
 
             $post_id = get_the_ID(); // Get the current post ID
 
+            // Get author IDs from meta
+            $author_ids = get_post_meta($post_id, 'book_authors', true);
+            if (!is_array($author_ids)) {
+                $author_ids = !empty($author_ids) ? [$author_ids] : [];
+            }
+
+            // Get author details
+            $authors = [];
+            foreach ($author_ids as $author_id) {
+                $author_post = get_post($author_id);
+                if ($author_post && $author_post->post_type === 'author') {
+                    $authors[] = [
+                        'id' => $author_id,
+                        'name' => $author_post->post_title,
+                    ];
+                }
+            }
+
             /**
              * Build an array with all book information
              * get_post_meta() retrieves custom field values from the database
@@ -66,7 +84,9 @@ add_action('wp_ajax_get_books', function () {
                 'id'               => $post_id,
                 'title'            => get_the_title(),                              // Book title
                 'description'      => get_the_content(),                            // Book description
-                'author'           => get_post_meta($post_id, 'author', true),      // Custom field: author
+                'author'           => get_post_meta($post_id, 'author', true),      // Custom field: author (legacy)
+                'authors'          => $authors,                                      // Array of author objects
+                'author_ids'       => $author_ids,                                   // Array of author IDs
                 'isbn'             => get_post_meta($post_id, 'isbn', true),        // Custom field: ISBN
                 'publication_year' => get_post_meta($post_id, 'publication_year', true), // Custom field: year
             ];
@@ -100,11 +120,31 @@ add_action('wp_ajax_nopriv_get_books', function () {
             $query->the_post();
             $post_id = get_the_ID();
 
+            // Get author IDs from meta
+            $author_ids = get_post_meta($post_id, 'book_authors', true);
+            if (!is_array($author_ids)) {
+                $author_ids = !empty($author_ids) ? [$author_ids] : [];
+            }
+
+            // Get author details
+            $authors = [];
+            foreach ($author_ids as $author_id) {
+                $author_post = get_post($author_id);
+                if ($author_post && $author_post->post_type === 'author') {
+                    $authors[] = [
+                        'id' => $author_id,
+                        'name' => $author_post->post_title,
+                    ];
+                }
+            }
+
             $books[] = [
                 'id'               => $post_id,
                 'title'            => get_the_title(),
                 'description'      => get_the_content(),
                 'author'           => get_post_meta($post_id, 'author', true),
+                'authors'          => $authors,
+                'author_ids'       => $author_ids,
                 'isbn'             => get_post_meta($post_id, 'isbn', true),
                 'publication_year' => get_post_meta($post_id, 'publication_year', true),
             ];
@@ -134,6 +174,11 @@ add_action('wp_ajax_create_book', function () {
     $author           = sanitize_text_field($_POST['author'] ?? '');
     $isbn             = sanitize_text_field($_POST['isbn'] ?? '');
     $publication_year = sanitize_text_field($_POST['publication_year'] ?? '');
+
+    // Get author IDs array
+    $author_ids = isset($_POST['author_ids']) && is_array($_POST['author_ids'])
+        ? array_map('intval', $_POST['author_ids'])
+        : [];
 
     /**
      * Validate required fields
@@ -172,6 +217,7 @@ add_action('wp_ajax_create_book', function () {
     update_post_meta($post_id, 'author', $author);
     update_post_meta($post_id, 'isbn', $isbn);
     update_post_meta($post_id, 'publication_year', $publication_year);
+    update_post_meta($post_id, 'book_authors', $author_ids);
 
     /**
      * Return success response with the new book data
@@ -228,6 +274,11 @@ add_action('wp_ajax_update_book', function () {
     $isbn             = sanitize_text_field($_POST['isbn'] ?? '');
     $publication_year = sanitize_text_field($_POST['publication_year'] ?? '');
 
+    // Get author IDs array
+    $author_ids = isset($_POST['author_ids']) && is_array($_POST['author_ids'])
+        ? array_map('intval', $_POST['author_ids'])
+        : [];
+
     /**
      * Validate required fields
      */
@@ -260,6 +311,7 @@ add_action('wp_ajax_update_book', function () {
     update_post_meta($post_id, 'author', $author);
     update_post_meta($post_id, 'isbn', $isbn);
     update_post_meta($post_id, 'publication_year', $publication_year);
+    update_post_meta($post_id, 'book_authors', $author_ids);
 
     /**
      * Return success response with updated book data
@@ -328,5 +380,125 @@ add_action('wp_ajax_delete_book', function () {
     wp_send_json_success([
         'message' => 'Book deleted successfully',
         'id'      => $post_id,
+    ]);
+});
+
+/**
+ * Get all authors (READ operation)
+ */
+add_action('wp_ajax_get_authors', function () {
+    check_ajax_referer('book_crud_nonce', 'nonce');
+
+    $query = new \WP_Query([
+        'post_type'      => 'author',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ]);
+
+    $authors = [];
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            $authors[] = [
+                'id'   => get_the_ID(),
+                'name' => get_the_title(),
+            ];
+        }
+        wp_reset_postdata();
+    }
+
+    wp_send_json_success($authors);
+});
+
+add_action('wp_ajax_nopriv_get_authors', function () {
+    check_ajax_referer('book_crud_nonce', 'nonce');
+
+    $query = new \WP_Query([
+        'post_type'      => 'author',
+        'posts_per_page' => -1,
+        'post_status'    => 'publish',
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ]);
+
+    $authors = [];
+
+    if ($query->have_posts()) {
+        while ($query->have_posts()) {
+            $query->the_post();
+            $authors[] = [
+                'id'   => get_the_ID(),
+                'name' => get_the_title(),
+            ];
+        }
+        wp_reset_postdata();
+    }
+
+    wp_send_json_success($authors);
+});
+
+/**
+ * Create a new author (CREATE operation)
+ */
+add_action('wp_ajax_create_author', function () {
+    check_ajax_referer('book_crud_nonce', 'nonce');
+
+    $author_name = sanitize_text_field($_POST['author_name'] ?? '');
+
+    if (empty($author_name)) {
+        wp_send_json_error(['message' => 'Author name is required']);
+        return;
+    }
+
+    $post_id = wp_insert_post([
+        'post_title'   => $author_name,
+        'post_type'    => 'author',
+        'post_status'  => 'publish',
+    ]);
+
+    if (is_wp_error($post_id)) {
+        wp_send_json_error(['message' => 'Failed to create author']);
+        return;
+    }
+
+    wp_send_json_success([
+        'message' => 'Author created successfully',
+        'author'  => [
+            'id'   => $post_id,
+            'name' => $author_name,
+        ],
+    ]);
+});
+
+add_action('wp_ajax_nopriv_create_author', function () {
+    check_ajax_referer('book_crud_nonce', 'nonce');
+
+    $author_name = sanitize_text_field($_POST['author_name'] ?? '');
+
+    if (empty($author_name)) {
+        wp_send_json_error(['message' => 'Author name is required']);
+        return;
+    }
+
+    $post_id = wp_insert_post([
+        'post_title'   => $author_name,
+        'post_type'    => 'author',
+        'post_status'  => 'publish',
+    ]);
+
+    if (is_wp_error($post_id)) {
+        wp_send_json_error(['message' => 'Failed to create author']);
+        return;
+    }
+
+    wp_send_json_success([
+        'message' => 'Author created successfully',
+        'author'  => [
+            'id'   => $post_id,
+            'name' => $author_name,
+        ],
     ]);
 });

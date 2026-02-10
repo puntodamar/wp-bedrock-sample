@@ -142,18 +142,28 @@
             >
           </div>
 
-          {{-- Author field --}}
+          {{-- Authors field --}}
           <div>
-            <label for="book-author" class="block text-sm font-medium text-gray-700 mb-1">
-              Author
+            <label for="book-authors" class="block text-sm font-medium text-gray-700 mb-1">
+              Authors
             </label>
-            <input
-              type="text"
-              id="book-author"
-              name="author"
+            <select
+              id="book-authors"
+              name="author_ids[]"
+              multiple
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
-              placeholder="Enter author name"
+              style="min-height: 120px;"
             >
+              {{-- Options will be populated via JavaScript --}}
+            </select>
+            <p class="mt-1 text-sm text-gray-500">Hold Ctrl (Cmd on Mac) to select multiple authors</p>
+            <button
+              type="button"
+              onclick="openAuthorModal()"
+              class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-medium"
+            >
+              + Add New Author
+            </button>
           </div>
 
           {{-- ISBN field --}}
@@ -240,4 +250,44 @@
     // wp_create_nonce() generates a unique token that expires after 24 hours
     window.bookNonce = '{{ wp_create_nonce('book_crud_nonce') }}';
   </script>
+
+    {{-- Modal for Add Author --}}
+    <div id="author-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-2xl font-bold text-gray-900">Add New Author</h3>
+          <button onclick="closeAuthorModal()" class="text-gray-400 hover:text-gray-600 transition duration-150">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <form id="author-form" class="space-y-4">
+          <div>
+            <label for="author-name" class="block text-sm font-medium text-gray-700 mb-1">
+              Author Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="author-name"
+              name="author_name"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150"
+              placeholder="Enter author name"
+            >
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4">
+            <button type="button" onclick="closeAuthorModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150">
+              <span id="author-submit-text">Add Author</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
 @endsection

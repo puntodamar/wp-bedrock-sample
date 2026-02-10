@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "73aafa277950600ca0daebba18909aca",
+    "content-hash": "59af1dc8f9a7838aa6b97526d7630ed6",
     "packages": [
         {
             "name": "composer/installers",
@@ -1015,6 +1015,24 @@
             "time": "2025-04-30T23:37:27+00:00"
         },
         {
+            "name": "wpackagist-plugin/meta-box",
+            "version": "5.11.1",
+            "source": {
+                "type": "svn",
+                "url": "https://plugins.svn.wordpress.org/meta-box/",
+                "reference": "tags/5.11.1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://downloads.wordpress.org/plugin/meta-box.5.11.1.zip"
+            },
+            "require": {
+                "composer/installers": "^1.0 || ^2.0"
+            },
+            "type": "wordpress-plugin",
+            "homepage": "https://wordpress.org/plugins/meta-box/"
+        },
+        {
             "name": "wpackagist-theme/twentytwentyfive",
             "version": "1.4",
             "source": {
@@ -1103,12 +1121,12 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": [],
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.1"
     },
-    "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "platform-dev": [],
+    "plugin-api-version": "2.6.0"
 }

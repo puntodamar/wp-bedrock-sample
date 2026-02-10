@@ -1,61 +1,79 @@
 /**
- * Books CRUD JavaScript
- *
- * This file handles all client-side functionality for the Books CRUD interface.
- * It uses vanilla JavaScript (no jQuery) and the Fetch API for AJAX requests.
- *
- * Main functions:
- * - loadBooks(): Fetches and displays all books
- * - openModal(): Opens the create/edit modal
- * - closeModal(): Closes the modal
- * - saveBook(): Saves a new or updated book
- * - editBook(): Populates the modal with book data for editing
- * - deleteBook(): Deletes a book after confirmation
- * - showMessage(): Displays success/error messages
+ * Books CRUD JavaScript with Author Management
  */
+
+let allAuthors = []; // Store all authors globally
+
+/**
+ * Load all authors from the server
+ */
+function loadAuthors() {
+  const formData = new FormData();
+  formData.append('action', 'get_authors');
+  formData.append('nonce', window.bookNonce);
+
+  return fetch(window.ajaxUrl, {
+    method: 'POST',
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        allAuthors = data.data;
+        populateAuthorDropdown();
+        return allAuthors;
+      } else {
+        console.error('Failed to load authors');
+        return [];
+      }
+    })
+    .catch((error) => {
+      console.error('Error loading authors:', error);
+      return [];
+    });
+}
+
+/**
+ * Populate the author dropdown with options
+ */
+function populateAuthorDropdown(selectedIds = []) {
+  const select = document.getElementById('book-authors');
+  if (!select) return;
+
+  select.innerHTML = '';
+
+  allAuthors.forEach((author) => {
+    const option = document.createElement('option');
+    option.value = author.id;
+    option.textContent = author.name;
+    if (selectedIds.includes(author.id)) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+}
 
 /**
  * Load all books from the server and display them in the table
- *
- * This function is called when the page loads and after any CRUD operation
- * to refresh the book list.
  */
 function loadBooks() {
-  /**
-   * Create FormData object to send with the AJAX request
-   * FormData is used to easily construct key/value pairs for POST requests
-   */
   const formData = new FormData();
-  formData.append('action', 'get_books'); // WordPress AJAX action name
-  formData.append('nonce', window.bookNonce); // Security nonce
+  formData.append('action', 'get_books');
+  formData.append('nonce', window.bookNonce);
 
-  /**
-   * Make AJAX request using Fetch API
-   * Fetch is a modern replacement for XMLHttpRequest
-   *
-   * fetch() returns a Promise, so we use .then() to handle the response
-   */
   fetch(window.ajaxUrl, {
-    method: 'POST', // HTTP method
-    body: formData, // Data to send
+    method: 'POST',
+    body: formData,
   })
-    .then((response) => response.json()) // Parse JSON response
+    .then((response) => response.json())
     .then((data) => {
-      /**
-       * Check if the request was successful
-       * WordPress AJAX returns data.success = true/false
-       */
       if (data.success) {
-        displayBooks(data.data); // Display the books
+        displayBooks(data.data);
       } else {
         showMessage('Failed to load books', 'error');
       }
     })
     .catch((error) => {
-      /**
-       * Handle any errors that occurred during the request
-       * This catches network errors, JSON parsing errors, etc.
-       */
       console.error('Error loading books:', error);
       showMessage('Error loading books', 'error');
     });
@@ -63,24 +81,12 @@ function loadBooks() {
 
 /**
  * Display books in the table
- *
- * @param {Array} books - Array of book objects from the server
  */
 function displayBooks(books) {
-  // Get the table body element where we'll insert rows
   const tbody = document.getElementById('books-table-body');
-
-  /**
-   * Clear existing content
-   * innerHTML = '' removes all child elements
-   */
   tbody.innerHTML = '';
 
-  /**
-   * Check if there are any books to display
-   */
   if (books.length === 0) {
-    // Display "no books" message
     tbody.innerHTML = `
       <tr>
         <td colspan="6" class="px-6 py-8 text-center text-gray-500">
@@ -97,36 +103,25 @@ function displayBooks(books) {
     return;
   }
 
-  /**
-   * Loop through each book and create a table row
-   * forEach() executes a function for each element in the array
-   */
   books.forEach((book) => {
-    /**
-     * Create a new table row element
-     * We use template literals (backticks) to create HTML with embedded variables
-     */
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition duration-150';
 
-    /**
-     * Truncate description if it's too long
-     * This prevents the table from becoming too wide
-     */
     const shortDescription = book.description.length > 100
       ? book.description.substring(0, 100) + '...'
       : book.description;
 
-    /**
-     * Set the row's HTML content
-     * ${variable} syntax inserts JavaScript variables into the string
-     */
+    // Format authors as comma-separated list
+    const authorNames = book.authors && book.authors.length > 0
+      ? book.authors.map(a => a.name).join(', ')
+      : 'No authors';
+
     row.innerHTML = `
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm font-medium text-gray-900">${escapeHtml(book.title)}</div>
       </td>
       <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-600">${escapeHtml(book.author)}</div>
+        <div class="text-sm text-gray-600">${escapeHtml(authorNames)}</div>
       </td>
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-600">${escapeHtml(book.isbn)}</div>
@@ -161,23 +156,15 @@ function displayBooks(books) {
       </td>
     `;
 
-    // Add the row to the table body
     tbody.appendChild(row);
   });
 }
 
 /**
  * Escape HTML to prevent XSS attacks
- *
- * This function converts special characters to HTML entities
- * to prevent malicious scripts from being executed.
- *
- * @param {string} text - Text to escape
- * @returns {string} - Escaped text
  */
 function escapeHtml(text) {
   if (!text) return '';
-
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
@@ -185,39 +172,27 @@ function escapeHtml(text) {
 
 /**
  * Open the modal for creating or editing a book
- *
- * @param {number|null} bookId - Book ID if editing, null if creating new
  */
 function openModal(bookId = null) {
   const modal = document.getElementById('book-modal');
   const modalTitle = document.getElementById('modal-title');
   const form = document.getElementById('book-form');
 
-  /**
-   * Reset the form
-   * This clears all input fields
-   */
   form.reset();
   document.getElementById('book-id').value = '';
+  populateAuthorDropdown();
 
-  /**
-   * Set modal title based on whether we're creating or editing
-   */
   if (bookId) {
     modalTitle.textContent = 'Edit Book';
   } else {
     modalTitle.textContent = 'Add New Book';
   }
 
-  /**
-   * Show the modal
-   * Remove 'hidden' class to make it visible
-   */
   modal.classList.remove('hidden');
 }
 
 /**
- * Close the modal
+ * Close the book modal
  */
 function closeModal() {
   const modal = document.getElementById('book-modal');
@@ -225,26 +200,32 @@ function closeModal() {
 }
 
 /**
+ * Open the author modal
+ */
+function openAuthorModal() {
+  const modal = document.getElementById('author-modal');
+  const form = document.getElementById('author-form');
+  form.reset();
+  modal.classList.remove('hidden');
+}
+
+/**
+ * Close the author modal
+ */
+function closeAuthorModal() {
+  const modal = document.getElementById('author-modal');
+  modal.classList.add('hidden');
+}
+
+/**
  * Edit a book
- *
- * This function fetches the book data and populates the modal form
- *
- * @param {number} bookId - ID of the book to edit
  */
 function editBook(bookId) {
-  // Convert bookId to number for comparison
   bookId = parseInt(bookId);
-  /**
-   * Create FormData for the AJAX request
-   */
   const formData = new FormData();
   formData.append('action', 'get_books');
   formData.append('nonce', window.bookNonce);
 
-  /**
-   * Fetch all books and find the one we want to edit
-   * In a production app, you might want a separate endpoint to get a single book
-   */
   fetch(window.ajaxUrl, {
     method: 'POST',
     body: formData,
@@ -252,34 +233,20 @@ function editBook(bookId) {
     .then((response) => response.json())
     .then((data) => {
       if (data.success) {
-        /**
-         * Find the book with the matching ID
-         * find() returns the first element that matches the condition
-         */
         const book = data.data.find((b) => b.id === bookId);
-        console.log(book.title);
         if (book) {
-          /**
-           * Populate the form fields with book data
-           */
           requestAnimationFrame(() => {
-            const titleEl = document.getElementById('book-title');
-            if (!titleEl) {
-              console.error('#book-title not found after opening modal');
-              return;
-            }
-
             document.getElementById('book-id').value = book.id;
-            titleEl.value = book.title;
-            document.getElementById('book-author').value = book.author;
+            document.getElementById('book-title').value = book.title;
             document.getElementById('book-isbn').value = book.isbn;
             document.getElementById('book-year').value = book.publication_year;
             document.getElementById('book-description').value = book.description;
+            
+            // Select the authors
+            const authorIds = book.author_ids || [];
+            populateAuthorDropdown(authorIds);
           });
 
-          /**
-           * Open the modal
-           */
           openModal(bookId);
         }
       }
@@ -292,29 +259,17 @@ function editBook(bookId) {
 
 /**
  * Delete a book
- *
- * @param {number} bookId - ID of the book to delete
  */
 function deleteBook(bookId) {
-  /**
-   * Ask for confirmation before deleting
-   * confirm() shows a browser dialog with OK/Cancel buttons
-   */
   if (!confirm('Are you sure you want to delete this book? This action cannot be undone.')) {
-    return; // User clicked Cancel
+    return;
   }
 
-  /**
-   * Create FormData for the delete request
-   */
   const formData = new FormData();
   formData.append('action', 'delete_book');
   formData.append('nonce', window.bookNonce);
   formData.append('id', bookId);
 
-  /**
-   * Send delete request to server
-   */
   fetch(window.ajaxUrl, {
     method: 'POST',
     body: formData,
@@ -323,7 +278,7 @@ function deleteBook(bookId) {
     .then((data) => {
       if (data.success) {
         showMessage(data.data.message, 'success');
-        loadBooks(); // Reload the book list
+        loadBooks();
       } else {
         showMessage(data.data.message || 'Failed to delete book', 'error');
       }
@@ -336,17 +291,11 @@ function deleteBook(bookId) {
 
 /**
  * Show a success or error message
- *
- * @param {string} message - Message to display
- * @param {string} type - 'success' or 'error'
  */
 function showMessage(message, type) {
   const container = document.getElementById('message-container');
   const messageDiv = document.getElementById('message');
 
-  /**
-   * Set message content and styling based on type
-   */
   messageDiv.textContent = message;
 
   if (type === 'success') {
@@ -355,47 +304,33 @@ function showMessage(message, type) {
     messageDiv.className = 'p-4 rounded-lg bg-red-100 text-red-800 border border-red-200';
   }
 
-  /**
-   * Show the message
-   */
   container.classList.remove('hidden');
 
-  /**
-   * Hide the message after 5 seconds
-   * setTimeout() executes a function after a delay (in milliseconds)
-   */
   setTimeout(() => {
     container.classList.add('hidden');
   }, 5000);
 }
 
 /**
- * Handle form submission
- *
- * This event listener is attached to the form and prevents the default
- * form submission behavior, instead using AJAX to submit the data.
+ * Handle book form submission
  */
 document.getElementById('book-form').addEventListener('submit', function (e) {
-  /**
-   * Prevent default form submission
-   * By default, forms reload the page when submitted
-   */
   e.preventDefault();
 
-  /**
-   * Get form data
-   * FormData automatically collects all form field values
-   */
   const formData = new FormData(this);
-
-  /**
-   * Get the book ID to determine if we're creating or updating
-   */
   const bookId = document.getElementById('book-id').value;
 
-  /**
-   * Set the appropriate AJAX action
-   */
+  // Get selected author IDs
+  const select = document.getElementById('book-authors');
+  const selectedOptions = Array.from(select.selectedOptions);
+  const authorIds = selectedOptions.map(option => option.value);
+
+  // Remove the default author_ids[] from formData and add them individually
+  formData.delete('author_ids[]');
+  authorIds.forEach(id => {
+    formData.append('author_ids[]', id);
+  });
+
   if (bookId) {
     formData.append('action', 'update_book');
     formData.append('id', bookId);
@@ -403,23 +338,14 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
     formData.append('action', 'create_book');
   }
 
-  /**
-   * Add security nonce
-   */
   formData.append('nonce', window.bookNonce);
 
-  /**
-   * Disable submit button to prevent double-submission
-   */
   const submitButton = this.querySelector('button[type="submit"]');
   const submitText = document.getElementById('submit-text');
   const originalText = submitText.textContent;
   submitText.textContent = 'Saving...';
   submitButton.disabled = true;
 
-  /**
-   * Send the request to the server
-   */
   fetch(window.ajaxUrl, {
     method: 'POST',
     body: formData,
@@ -429,7 +355,7 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
       if (data.success) {
         showMessage(data.data.message, 'success');
         closeModal();
-        loadBooks(); // Reload the book list
+        loadBooks();
       } else {
         showMessage(data.data.message || 'Failed to save book', 'error');
       }
@@ -439,60 +365,105 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
       showMessage('Error saving book', 'error');
     })
     .finally(() => {
-      /**
-       * Re-enable submit button
-       * finally() runs regardless of success or failure
-       */
       submitText.textContent = originalText;
       submitButton.disabled = false;
     });
 });
 
 /**
- * Load books when the page loads
- *
- * DOMContentLoaded event fires when the HTML document has been completely parsed
- * This ensures all elements exist before we try to manipulate them
+ * Handle author form submission
  */
-document.addEventListener('DOMContentLoaded', function () {
-  loadBooks();
+document.getElementById('author-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+
+  const formData = new FormData(this);
+  formData.append('action', 'create_author');
+  formData.append('nonce', window.bookNonce);
+
+  const submitButton = this.querySelector('button[type="submit"]');
+  const submitText = document.getElementById('author-submit-text');
+  const originalText = submitText.textContent;
+  submitText.textContent = 'Creating...';
+  submitButton.disabled = true;
+
+  fetch(window.ajaxUrl, {
+    method: 'POST',
+    body: formData,
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        showMessage(data.data.message, 'success');
+        closeAuthorModal();
+        // Reload authors and update dropdown
+        loadAuthors().then(() => {
+          // Select the newly created author
+          const newAuthorId = data.data.author.id;
+          const select = document.getElementById('book-authors');
+          const option = Array.from(select.options).find(opt => opt.value == newAuthorId);
+          if (option) {
+            option.selected = true;
+          }
+        });
+      } else {
+        showMessage(data.data.message || 'Failed to create author', 'error');
+      }
+    })
+    .catch((error) => {
+      console.error('Error creating author:', error);
+      showMessage('Error creating author', 'error');
+    })
+    .finally(() => {
+      submitText.textContent = originalText;
+      submitButton.disabled = false;
+    });
 });
 
 /**
- * Close modal when clicking outside of it
- *
- * This provides a better user experience by allowing users to close
- * the modal by clicking the dark overlay
+ * Load books and authors when the page loads
+ */
+document.addEventListener('DOMContentLoaded', function () {
+  loadAuthors().then(() => {
+    loadBooks();
+  });
+});
+
+/**
+ * Close modals when clicking outside
  */
 document.getElementById('book-modal').addEventListener('click', function (e) {
-  /**
-   * Check if the click was on the overlay (not the modal content)
-   * e.target is the element that was clicked
-   * this is the modal overlay element
-   */
   if (e.target === this) {
     closeModal();
   }
 });
 
+document.getElementById('author-modal').addEventListener('click', function (e) {
+  if (e.target === this) {
+    closeAuthorModal();
+  }
+});
+
 /**
- * Close modal with Escape key
- *
- * This is a common UX pattern for modals
+ * Close modals with Escape key
  */
 document.addEventListener('keydown', function (e) {
-  /**
-   * Check if Escape key was pressed and modal is open
-   */
   if (e.key === 'Escape') {
-    const modal = document.getElementById('book-modal');
-    if (!modal.classList.contains('hidden')) {
+    const bookModal = document.getElementById('book-modal');
+    const authorModal = document.getElementById('author-modal');
+    
+    if (!bookModal.classList.contains('hidden')) {
       closeModal();
+    }
+    if (!authorModal.classList.contains('hidden')) {
+      closeAuthorModal();
     }
   }
 });
 
+// Export functions to window for onclick handlers
 window.openModal = openModal;
 window.editBook = editBook;
 window.closeModal = closeModal;
 window.deleteBook = deleteBook;
+window.openAuthorModal = openAuthorModal;
+window.closeAuthorModal = closeAuthorModal;
