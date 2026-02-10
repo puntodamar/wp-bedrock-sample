@@ -1,10 +1,10 @@
 <header class="banner">
-  <a class="brand" href="{{ home_url('/') }}">
-    {!! $siteName !!}
-  </a>
+{{--  <a class="brand" href="{{ home_url('/') }}">--}}
+{{--    {!! $siteName !!}--}}
+{{--  </a>--}}
 
   <a class="brand" href="{{ home_url('/') }}">
-    <img src="@asset('images/logo.png')" alt="">
+    <img src="@asset('images/logo.png')" class="w-15" alt="">
   </a>
 
   @if (has_nav_menu('primary_navigation'))
