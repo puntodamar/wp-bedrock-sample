@@ -1,50 +1,126 @@
-<p align="center">
-  <a href="https://roots.io/bedrock/">
-    <img alt="Bedrock" src="https://cdn.roots.io/app/uploads/logo-bedrock.svg" height="100">
-  </a>
-</p>
+# Bedrock + DDEV + Sage (with APP_URL undefined fix)
 
-<p align="center">
-  <a href="https://packagist.org/packages/roots/bedrock"><img alt="Packagist Installs" src="https://img.shields.io/packagist/dt/roots/bedrock?label=projects%20created&colorB=2b3072&colorA=525ddc&style=flat-square"></a>
-  <a href="https://packagist.org/packages/roots/wordpress"><img alt="roots/wordpress Packagist Downloads" src="https://img.shields.io/packagist/dt/roots/wordpress?label=roots%2Fwordpress%20downloads&logo=roots&logoColor=white&colorB=2b3072&colorA=525ddc&style=flat-square"></a>
-  <img src="https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/roots/bedrock/master/composer.json&label=wordpress&logo=roots&logoColor=white&query=$.require[%22roots/wordpress%22]&colorB=2b3072&colorA=525ddc&style=flat-square">
-  <a href="https://github.com/roots/bedrock/actions/workflows/ci.yml"><img alt="Build Status" src="https://img.shields.io/github/actions/workflow/status/roots/bedrock/ci.yml?branch=master&logo=github&label=CI&style=flat-square"></a>
-  <a href="https://twitter.com/rootswp"><img alt="Follow Roots" src="https://img.shields.io/badge/follow%20@rootswp-1da1f2?logo=twitter&logoColor=ffffff&message=&style=flat-square"></a>
-  <a href="https://github.com/sponsors/roots"><img src="https://img.shields.io/badge/sponsor%20roots-525ddc?logo=github&style=flat-square&logoColor=ffffff&message=" alt="Sponsor Roots"></a>
-</p>
+This guide sets up:
+- **Roots Bedrock** (WordPress via Composer)
+- **DDEV** (local dev)
+- **Roots Sage** (theme)
+  …and fixes the common Vite message: `APP_URL: undefined`.
 
-<p align="center">WordPress boilerplate with Composer, easier configuration, and an improved folder structure</p>
+---
 
-<p align="center">
-  <a href="https://roots.io/bedrock/">Website</a> &nbsp;&nbsp; <a href="https://roots.io/bedrock/docs/installation/">Documentation</a> &nbsp;&nbsp; <a href="https://github.com/roots/bedrock/releases">Releases</a> &nbsp;&nbsp; <a href="https://discourse.roots.io/">Community</a>
-</p>
+## Prerequisites
 
-## Support us
+Make sure these are installed:
 
-We're dedicated to pushing modern WordPress development forward through our open source projects, and we need your support to keep building. You can support our work by purchasing [Radicle](https://roots.io/radicle/), our recommended WordPress stack, or by [sponsoring us on GitHub](https://github.com/sponsors/roots). Every contribution directly helps us create better tools for the WordPress ecosystem.
+```bash
+docker --version
+ddev version
+composer --version
+node --version
+npm --version
+1) Create a new Bedrock project
+mkdir my-bedrock-site
+cd my-bedrock-site
 
-### Sponsors
+composer create-project roots/bedrock .
+cp .env.example .env
+Bedrock structure reminder:
 
-<a href="https://carrot.com/"><img src="https://cdn.roots.io/app/uploads/carrot.svg" alt="Carrot" width="120" height="90"></a> <a href="https://wordpress.com/"><img src="https://cdn.roots.io/app/uploads/wordpress.svg" alt="WordPress.com" width="120" height="90"></a> <a href="https://www.itineris.co.uk/"><img src="https://cdn.roots.io/app/uploads/itineris.svg" alt="Itineris" width="120" height="90"></a> <a href="https://kinsta.com/?kaid=OFDHAJIXUDIV"><img src="https://cdn.roots.io/app/uploads/kinsta.svg" alt="Kinsta" width="120" height="90"></a>
+Web root: web/
 
-## Overview
+WP core: web/wp
 
-Bedrock is a WordPress boilerplate for developers that want to manage their projects with Git and Composer. Much of the philosophy behind Bedrock is inspired by the [Twelve-Factor App](http://12factor.net/) methodology, including the [WordPress specific version](https://roots.io/twelve-factor-wordpress/).
+Themes/plugins: web/app
 
-- Better folder structure
-- Dependency management with [Composer](https://getcomposer.org)
-- Easy WordPress configuration with environment specific files
-- Environment variables with [Dotenv](https://github.com/vlucas/phpdotenv)
-- Autoloader for mu-plugins (use regular plugins as mu-plugins)
+2) Configure DDEV (use WordPress project type)
+This is important so ddev wp works.
 
-## Getting Started
+ddev config --project-type=wordpress --docroot=web --create-docroot
+ddev start
+3) Configure Bedrock .env for DDEV
+Edit .env in the project root:
 
-See the [Bedrock installation documentation](https://roots.io/bedrock/docs/installation/).
+DB_NAME='db'
+DB_USER='db'
+DB_PASSWORD='db'
+DB_HOST='db'
 
-## Stay Connected
+WP_ENV='development'
+WP_HOME="${DDEV_PRIMARY_URL}"
+WP_SITEURL="${DDEV_PRIMARY_URL}/wp"
+4) Install Bedrock dependencies
+ddev composer install
+5) Install WordPress (WP tables) via WP-CLI
+ddev wp core install \
+  --url="$(ddev describe -j | jq -r '.raw.primary_url')" \
+  --title="My Bedrock Site" \
+  --admin_user=admin \
+  --admin_password=admin \
+  --admin_email=admin@example.com
+If you don’t have jq:
 
-- Join us on Discord by [sponsoring us on GitHub](https://github.com/sponsors/roots)
-- Participate on [Roots Discourse](https://discourse.roots.io/)
-- Follow [@rootswp on Twitter](https://twitter.com/rootswp)
-- Read the [Roots Blog](https://roots.io/blog/)
-- Subscribe to the [Roots Newsletter](https://roots.io/newsletter/)
+ddev describe
+Copy the primary URL and pass it manually to --url.
+
+6) Install Sage theme
+6.1 Create the theme inside Bedrock
+From the project root:
+
+cd web/app/themes
+composer create-project roots/sage my-theme
+Example:
+
+composer create-project roots/sage teman-theme
+6.2 Install PHP dependencies for the theme
+cd teman-theme
+composer install
+6.3 Install JS dependencies for the theme
+npm install
+7) Fix APP_URL: undefined (Vite message)
+This message is printed by Sage’s Vite/Laravel plugin banner and is often harmless, but you can remove it by setting APP_URL in the theme’s .env.
+
+From the theme directory:
+
+cd web/app/themes/teman-theme
+Create .env if it doesn’t exist:
+
+cp .env.example .env 2>/dev/null || touch .env
+Add this line (replace with your DDEV URL):
+
+APP_URL=https://my-bedrock-site.ddev.site
+Restart Vite after editing:
+
+npm run dev
+8) Build theme assets
+For development (HMR/watch):
+
+npm run dev
+For production build:
+
+npm run build
+9) Activate the Sage theme
+From the project root:
+
+cd ../../../..
+ddev wp theme activate teman-theme
+Or in wp-admin:
+Appearance → Themes → Activate
+
+10) Access the site
+Frontend:
+
+https://my-bedrock-site.ddev.site
+
+Admin:
+
+https://my-bedrock-site.ddev.site/wp/wp-admin
+
+Quick sanity checks
+ddev wp theme status
+ddev wp option get home
+ddev wp option get siteurl
+Expected:
+
+home → https://<project>.ddev.site
+
+siteurl → https://<project>.ddev.site/wp
