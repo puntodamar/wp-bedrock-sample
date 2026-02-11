@@ -12,11 +12,12 @@
 namespace App\MetaBoxes;
 
 /**
- * Add the Author Selection meta box to the Book edit screen
+ * Add meta boxes to the Book edit screen
  */
 
 
 add_action('add_meta_boxes', function () {
+    // Authors meta box
     add_meta_box(
         'book_authors_meta_box',           // Unique ID for the meta box
         __('Book Authors', 'sage'),        // Title displayed in the meta box
@@ -25,6 +26,17 @@ add_action('add_meta_boxes', function () {
         'side',                            // Context: 'normal', 'side', or 'advanced'
         'default',                         // Priority: 'high', 'core', 'default', or 'low'
         null                               // Callback args (null for default)
+    );
+
+    // Book Details meta box (ISBN and Publication Year)
+    add_meta_box(
+        'book_details_meta_box',
+        __('Book Details', 'sage'),
+        'App\MetaBoxes\render_book_details_meta_box',
+        'book',
+        'side',
+        'default',
+        null
     );
 });
 
@@ -78,6 +90,32 @@ function render_book_authors_meta_box($post) {
 }
 
 /**
+ * Render the Book Details meta box content
+ *
+ * This function displays input fields for ISBN and Publication Year.
+ *
+ * @param \WP_Post $post The current post object
+ */
+function render_book_details_meta_box($post) {
+    // Add nonce for security verification
+    wp_nonce_field('book_details_meta_box', 'book_details_meta_box_nonce');
+
+    // Get current values
+    $isbn = get_post_meta($post->ID, 'isbn', true);
+    $publication_year = get_post_meta($post->ID, 'publication_year', true);
+
+    echo '<div style="margin-bottom: 15px;">';
+    echo '<label for="book_isbn" style="display: block; margin-bottom: 5px;"><strong>' . __('ISBN:', 'sage') . '</strong></label>';
+    echo '<input type="text" id="book_isbn" name="book_isbn" value="' . esc_attr($isbn) . '" style="width: 100%;" placeholder="' . esc_attr__('Enter ISBN', 'sage') . '">';
+    echo '</div>';
+
+    echo '<div>';
+    echo '<label for="book_publication_year" style="display: block; margin-bottom: 5px;"><strong>' . __('Publication Year:', 'sage') . '</strong></label>';
+    echo '<input type="text" id="book_publication_year" name="book_publication_year" value="' . esc_attr($publication_year) . '" style="width: 100%;" placeholder="' . esc_attr__('Enter year (e.g., 2024)', 'sage') . '">';
+    echo '</div>';
+}
+
+/**
  * Save the selected authors when the book is saved
  *
  * This function is hooked to 'save_post_book' and runs whenever a book is saved.
@@ -111,6 +149,43 @@ add_action('save_post_book', function ($post_id) {
 
     // Save the author IDs to post meta
     update_post_meta($post_id, 'book_authors', $author_ids);
+}, 10, 1);
+
+/**
+ * Save the book details (ISBN and Publication Year) when the book is saved
+ *
+ * @param int $post_id The ID of the post being saved
+ */
+add_action('save_post_book', function ($post_id) {
+    // Check if nonce is set
+    if (!isset($_POST['book_details_meta_box_nonce'])) {
+        return;
+    }
+
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['book_details_meta_box_nonce'], 'book_details_meta_box')) {
+        return;
+    }
+
+    // Check if this is an autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save ISBN
+    if (isset($_POST['book_isbn'])) {
+        update_post_meta($post_id, 'isbn', sanitize_text_field($_POST['book_isbn']));
+    }
+
+    // Save Publication Year
+    if (isset($_POST['book_publication_year'])) {
+        update_post_meta($post_id, 'publication_year', sanitize_text_field($_POST['book_publication_year']));
+    }
 }, 10, 1);
 
 /**
