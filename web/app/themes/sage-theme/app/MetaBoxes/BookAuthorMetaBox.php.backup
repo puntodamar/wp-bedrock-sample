@@ -1,0 +1,276 @@
+<?php
+
+/**
+ * Book Author Meta Box
+ *
+ * This file creates a custom meta box in the Book edit screen that allows
+ * selecting one or more authors to associate with a book.
+ *
+ * @package App\MetaBoxes
+ */
+
+namespace App\MetaBoxes;
+
+/**
+ * Add meta boxes to the Book edit screen
+ */
+
+
+add_action('add_meta_boxes', function () {
+    // Authors meta box
+    add_meta_box(
+        'book_authors_meta_box',           // Unique ID for the meta box
+        __('Book Authors', 'sage'),        // Title displayed in the meta box
+        'App\MetaBoxes\render_book_authors_meta_box', // Callback function to render the content
+        'book',                            // Post type where this meta box appears
+        'side',                            // Context: 'normal', 'side', or 'advanced'
+        'default',                         // Priority: 'high', 'core', 'default', or 'low'
+        null                               // Callback args (null for default)
+    );
+
+    // Book Details meta box (ISBN and Publication Year)
+    add_meta_box(
+        'book_details_meta_box',
+        __('Book Details', 'sage'),
+        'App\MetaBoxes\render_book_details_meta_box',
+        'book',
+        'side',
+        'default',
+        null
+    );
+});
+
+/**
+ * Render the Author Selection meta box content
+ *
+ * This function displays a checklist of all available authors,
+ * with checkboxes for the ones currently associated with this book.
+ *
+ * @param \WP_Post $post The current post object
+ */
+function render_book_authors_meta_box($post) {
+    // Add nonce for security verification
+    wp_nonce_field('book_authors_meta_box', 'book_authors_meta_box_nonce');
+
+    // Get currently selected author IDs
+    $selected_authors = get_post_meta($post->ID, 'book_authors', true);
+    if (!is_array($selected_authors)) {
+        $selected_authors = [];
+    }
+
+    // Query all authors
+    $authors = get_posts([
+        'post_type'      => 'author',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'post_status'    => 'publish',
+    ]);
+
+    if (empty($authors)) {
+        echo '<p>' . __('No authors found. Please create authors first.', 'sage') . '</p>';
+        echo '<p><a href="' . admin_url('post-new.php?post_type=author') . '" class="button">' . __('Add New Author', 'sage') . '</a></p>';
+        return;
+    }
+
+    echo '<div style="max-height: 300px; overflow-y: auto;">';
+    echo '<p><strong>' . __('Select authors for this book:', 'sage') . '</strong></p>';
+
+    foreach ($authors as $author) {
+        $checked = in_array($author->ID, $selected_authors) ? 'checked="checked"' : '';
+        echo '<label style="display: block; margin-bottom: 8px;">';
+        echo '<input type="checkbox" name="book_author_ids[]" value="' . esc_attr($author->ID) . '" ' . $checked . '> ';
+        echo esc_html($author->post_title);
+        echo '</label>';
+    }
+
+    echo '</div>';
+
+    echo '<p style="margin-top: 10px;"><em>' . __('Check one or more authors to associate with this book.', 'sage') . '</em></p>';
+}
+
+/**
+ * Render the Book Details meta box content
+ *
+ * This function displays input fields for ISBN and Publication Year.
+ *
+ * @param \WP_Post $post The current post object
+ */
+function render_book_details_meta_box($post) {
+    // Add nonce for security verification
+    wp_nonce_field('book_details_meta_box', 'book_details_meta_box_nonce');
+
+    // Get current values
+    $isbn = get_post_meta($post->ID, 'isbn', true);
+    $publication_year = get_post_meta($post->ID, 'publication_year', true);
+
+    echo '<div style="margin-bottom: 15px;">';
+    echo '<label for="book_isbn" style="display: block; margin-bottom: 5px;"><strong>' . __('ISBN:', 'sage') . '</strong></label>';
+    echo '<input type="text" id="book_isbn" name="book_isbn" value="' . esc_attr($isbn) . '" style="width: 100%;" placeholder="' . esc_attr__('Enter ISBN', 'sage') . '">';
+    echo '</div>';
+
+    echo '<div>';
+    echo '<label for="book_publication_year" style="display: block; margin-bottom: 5px;"><strong>' . __('Publication Year:', 'sage') . '</strong></label>';
+    echo '<input type="text" id="book_publication_year" name="book_publication_year" value="' . esc_attr($publication_year) . '" style="width: 100%;" placeholder="' . esc_attr__('Enter year (e.g., 2024)', 'sage') . '">';
+    echo '</div>';
+}
+
+/**
+ * Save the selected authors when the book is saved
+ *
+ * This function is hooked to 'save_post_book' and runs whenever a book is saved.
+ * It validates the nonce and saves the selected author IDs to post meta.
+ *
+ * @param int $post_id The ID of the post being saved
+ */
+add_action('save_post_book', function ($post_id) {
+    // Check if nonce is set
+    if (!isset($_POST['book_authors_meta_box_nonce'])) {
+        return;
+    }
+
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['book_authors_meta_box_nonce'], 'book_authors_meta_box')) {
+        return;
+    }
+
+    // Check if this is an autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Get the selected author IDs from the form
+    $author_ids = isset($_POST['book_author_ids']) ? array_map('intval', $_POST['book_author_ids']) : [];
+
+    // Save the author IDs to post meta
+    update_post_meta($post_id, 'book_authors', $author_ids);
+}, 10, 1);
+
+/**
+ * Save the book details (ISBN and Publication Year) when the book is saved
+ *
+ * @param int $post_id The ID of the post being saved
+ */
+add_action('save_post_book', function ($post_id) {
+    // Check if nonce is set
+    if (!isset($_POST['book_details_meta_box_nonce'])) {
+        return;
+    }
+
+    // Verify nonce
+    if (!wp_verify_nonce($_POST['book_details_meta_box_nonce'], 'book_details_meta_box')) {
+        return;
+    }
+
+    // Check if this is an autosave
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    // Save ISBN
+    if (isset($_POST['book_isbn'])) {
+        update_post_meta($post_id, 'isbn', sanitize_text_field($_POST['book_isbn']));
+    }
+
+    // Save Publication Year
+    if (isset($_POST['book_publication_year'])) {
+        update_post_meta($post_id, 'publication_year', sanitize_text_field($_POST['book_publication_year']));
+    }
+}, 10, 1);
+
+/**
+ * Display custom columns in the admin books list
+ */
+add_filter('manage_book_posts_columns', function ($columns) {
+    // Add new columns after the title
+    $new_columns = [];
+    foreach ($columns as $key => $value) {
+        $new_columns[$key] = $value;
+        if ($key === 'title') {
+            $new_columns['book_authors'] = __('Authors', 'sage');
+            $new_columns['isbn'] = __('ISBN', 'sage');
+            $new_columns['publication_year'] = __('Publication Year', 'sage');
+        }
+    }
+    return $new_columns;
+});
+
+/**
+ * Populate the custom columns with data
+ */
+add_action('manage_book_posts_custom_column', function ($column, $post_id) {
+    if ($column === 'book_authors') {
+        $author_ids = get_post_meta($post_id, 'book_authors', true);
+
+        if (empty($author_ids) || !is_array($author_ids)) {
+            echo '<em>' . __('No authors', 'sage') . '</em>';
+            return;
+        }
+
+        $author_names = [];
+        foreach ($author_ids as $author_id) {
+            $author = get_post($author_id);
+            if ($author) {
+                $author_names[] = esc_html($author->post_title);
+            }
+        }
+
+        echo !empty($author_names) ? implode(', ', $author_names) : '<em>' . __('No authors', 'sage') . '</em>';
+    }
+
+    if ($column === 'isbn') {
+        $isbn = get_post_meta($post_id, 'isbn', true);
+        echo !empty($isbn) ? esc_html($isbn) : '<em>' . __('N/A', 'sage') . '</em>';
+    }
+
+    if ($column === 'publication_year') {
+        $year = get_post_meta($post_id, 'publication_year', true);
+        echo !empty($year) ? esc_html($year) : '<em>' . __('N/A', 'sage') . '</em>';
+    }
+}, 10, 2);
+
+/**
+ * Make the custom columns sortable
+ */
+add_filter('manage_edit-book_sortable_columns', function ($columns) {
+    $columns['book_authors'] = 'book_authors';
+    $columns['isbn'] = 'isbn';
+    $columns['publication_year'] = 'publication_year';
+    return $columns;
+});
+
+/**
+ * Make the meta box compatible with Gutenberg editor
+ *
+ * This filter ensures the meta box appears in the Gutenberg editor.
+ * The __back_compat_meta_box flag tells Gutenberg to render this classic meta box.
+ */
+add_filter('is_protected_meta', function ($protected, $meta_key) {
+    // Allow book_authors to be updated via REST API
+    if ($meta_key === 'book_authors') {
+        return false;
+    }
+    return $protected;
+}, 10, 2);
+
+/**
+ * Ensure meta box shows in Gutenberg by registering it as compatible
+ */
+add_filter('rest_prepare_book', function ($response, $post, $request) {
+    // Add book_authors to the REST response if not already present
+    $author_ids = get_post_meta($post->ID, 'book_authors', true);
+    if (!isset($response->data['meta']['book_authors'])) {
+        $response->data['meta']['book_authors'] = is_array($author_ids) ? $author_ids : [];
+    }
+    return $response;
+}, 10, 3);

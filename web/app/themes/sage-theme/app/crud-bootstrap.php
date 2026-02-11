@@ -10,7 +10,7 @@
  * - PostTypes/Book.php: Registers the Book custom post type
  * - PostTypes/Author.php: Registers the Author custom post type
  * - Ajax/BookAjax.php: Handles all AJAX requests for CRUD operations
- * - MetaBoxes/BookAuthorMetaBox.php: Custom meta box for author selection in admin
+ * - MetaBoxes/BookMetaBoxes.php: Meta boxes using Meta Box plugin for book fields
  *
  * @package App
  */
@@ -34,8 +34,8 @@ require_once __DIR__ . '/PostTypes/Author.php';
 require_once __DIR__ . '/Ajax/index.php';
 
 /**
- * Load the Book-Author meta box
- * This adds a custom meta box for selecting authors when editing books in the admin
+ * Load the Book meta boxes using Meta Box plugin
+ * This adds meta boxes for authors, ISBN, and publication year using the Meta Box plugin
  */
-require_once __DIR__ . '/MetaBoxes/BookAuthorMetaBox.php';
+require_once __DIR__ . '/MetaBoxes/BookMetaBoxes.php';
 

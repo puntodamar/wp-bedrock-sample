@@ -38,10 +38,16 @@ function handle_get_books(): void
                 }
             }
 
+            // Get description from custom field, fallback to post content
+            $description = get_post_meta($post_id, 'book_description', true);
+            if (empty($description)) {
+                $description = get_the_content();
+            }
+
             $books[] = [
                 'id'               => $post_id,
                 'title'            => get_the_title(),
-                'description'      => get_the_content(),
+                'description'      => $description,
                 'author'           => get_post_meta($post_id, 'author', true), // legacy
                 'authors'          => $authors,
                 'author_ids'       => $author_ids,

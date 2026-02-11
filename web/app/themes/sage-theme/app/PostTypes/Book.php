@@ -70,25 +70,37 @@ add_action('init', function () {
 /**
  * Register custom meta fields for Books
  *
- * Meta fields allow us to store additional information about each book.
- * These fields are stored in the wp_postmeta table in the database.
+ * These meta fields need to be registered for REST API / Gutenberg compatibility.
+ * The Meta Box plugin handles the UI, but we need to register the fields for data persistence.
  */
 add_action('init', function () {
     /**
-     * Register 'author' meta field
-     * This stores the book's author name
+     * Register 'author' meta field (legacy)
+     * This stores the book's author name - kept for backward compatibility
      */
     register_post_meta('book', 'author', [
-        'type'         => 'string',              // Data type: string
-        'single'       => true,                  // Only one value per post (not an array)
-        'show_in_rest' => true,                  // Make available in REST API
-        'default'      => '',                    // Default value if not set
-        'description'  => 'The author of the book', // Description for documentation
+        'type'         => 'string',
+        'single'       => true,
+        'show_in_rest' => true,
+        'default'      => '',
+        'description'  => 'The author of the book (legacy field)',
+    ]);
+
+    /**
+     * Register 'book_description' meta field
+     * This stores the book's description with HTML formatting
+     */
+    register_post_meta('book', 'book_description', [
+        'type'              => 'string',
+        'single'            => true,
+        'show_in_rest'      => true,
+        'default'           => '',
+        'description'       => 'Book description with HTML formatting',
+        'sanitize_callback' => 'wp_kses_post',
     ]);
 
     /**
      * Register 'isbn' meta field
-     * This stores the book's ISBN (International Standard Book Number)
      */
     register_post_meta('book', 'isbn', [
         'type'         => 'string',
@@ -100,7 +112,6 @@ add_action('init', function () {
 
     /**
      * Register 'publication_year' meta field
-     * This stores the year the book was published
      */
     register_post_meta('book', 'publication_year', [
         'type'         => 'string',
@@ -112,7 +123,6 @@ add_action('init', function () {
 
     /**
      * Register 'book_authors' meta field
-     * This stores an array of author post IDs associated with the book
      */
     register_post_meta('book', 'book_authors', [
         'type'         => 'array',
