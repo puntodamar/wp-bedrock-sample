@@ -10,9 +10,7 @@
  */
 
 namespace App\MetaBoxes;
-add_action('init', function () {
-    error_log('Book authors meta box file loaded ✅');
-});
+
 /**
  * Add the Author Selection meta box to the Book edit screen
  */

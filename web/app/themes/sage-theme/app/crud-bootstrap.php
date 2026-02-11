@@ -31,7 +31,7 @@ require_once __DIR__ . '/PostTypes/Author.php';
  * Load the Book AJAX handlers
  * This sets up all the AJAX endpoints for Create, Read, Update, Delete operations
  */
-require_once __DIR__ . '/Ajax/BookAjax.php';
+require_once __DIR__ . '/Ajax/index.php';
 
 /**
  * Load the Book-Author meta box
