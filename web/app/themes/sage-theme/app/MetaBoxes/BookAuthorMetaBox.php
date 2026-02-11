@@ -14,6 +14,8 @@ namespace App\MetaBoxes;
 /**
  * Add the Author Selection meta box to the Book edit screen
  */
+
+
 add_action('add_meta_boxes', function () {
     add_meta_box(
         'book_authors_meta_box',           // Unique ID for the meta box
@@ -21,7 +23,8 @@ add_action('add_meta_boxes', function () {
         'App\MetaBoxes\render_book_authors_meta_box', // Callback function to render the content
         'book',                            // Post type where this meta box appears
         'side',                            // Context: 'normal', 'side', or 'advanced'
-        'default'                          // Priority: 'high', 'core', 'default', or 'low'
+        'default',                         // Priority: 'high', 'core', 'default', or 'low'
+        null                               // Callback args (null for default)
     );
 });
 
@@ -38,7 +41,7 @@ function render_book_authors_meta_box($post) {
     wp_nonce_field('book_authors_meta_box', 'book_authors_meta_box_nonce');
 
     // Get currently selected author IDs
-    $selected_authors = get_post_meta($post->ID, 'author_ids', true);
+    $selected_authors = get_post_meta($post->ID, 'book_authors', true);
     if (!is_array($selected_authors)) {
         $selected_authors = [];
     }
@@ -107,30 +110,32 @@ add_action('save_post_book', function ($post_id) {
     $author_ids = isset($_POST['book_author_ids']) ? array_map('intval', $_POST['book_author_ids']) : [];
 
     // Save the author IDs to post meta
-    update_post_meta($post_id, 'author_ids', $author_ids);
+    update_post_meta($post_id, 'book_authors', $author_ids);
 }, 10, 1);
 
 /**
- * Display authors in the admin columns list
+ * Display custom columns in the admin books list
  */
 add_filter('manage_book_posts_columns', function ($columns) {
-    // Add a new column for authors after the title
+    // Add new columns after the title
     $new_columns = [];
     foreach ($columns as $key => $value) {
         $new_columns[$key] = $value;
         if ($key === 'title') {
             $new_columns['book_authors'] = __('Authors', 'sage');
+            $new_columns['isbn'] = __('ISBN', 'sage');
+            $new_columns['publication_year'] = __('Publication Year', 'sage');
         }
     }
     return $new_columns;
 });
 
 /**
- * Populate the authors column with data
+ * Populate the custom columns with data
  */
 add_action('manage_book_posts_custom_column', function ($column, $post_id) {
     if ($column === 'book_authors') {
-        $author_ids = get_post_meta($post_id, 'author_ids', true);
+        $author_ids = get_post_meta($post_id, 'book_authors', true);
 
         if (empty($author_ids) || !is_array($author_ids)) {
             echo '<em>' . __('No authors', 'sage') . '</em>';
@@ -147,12 +152,50 @@ add_action('manage_book_posts_custom_column', function ($column, $post_id) {
 
         echo !empty($author_names) ? implode(', ', $author_names) : '<em>' . __('No authors', 'sage') . '</em>';
     }
+
+    if ($column === 'isbn') {
+        $isbn = get_post_meta($post_id, 'isbn', true);
+        echo !empty($isbn) ? esc_html($isbn) : '<em>' . __('N/A', 'sage') . '</em>';
+    }
+
+    if ($column === 'publication_year') {
+        $year = get_post_meta($post_id, 'publication_year', true);
+        echo !empty($year) ? esc_html($year) : '<em>' . __('N/A', 'sage') . '</em>';
+    }
 }, 10, 2);
 
 /**
- * Make the authors column sortable
+ * Make the custom columns sortable
  */
 add_filter('manage_edit-book_sortable_columns', function ($columns) {
     $columns['book_authors'] = 'book_authors';
+    $columns['isbn'] = 'isbn';
+    $columns['publication_year'] = 'publication_year';
     return $columns;
 });
+
+/**
+ * Make the meta box compatible with Gutenberg editor
+ *
+ * This filter ensures the meta box appears in the Gutenberg editor.
+ * The __back_compat_meta_box flag tells Gutenberg to render this classic meta box.
+ */
+add_filter('is_protected_meta', function ($protected, $meta_key) {
+    // Allow book_authors to be updated via REST API
+    if ($meta_key === 'book_authors') {
+        return false;
+    }
+    return $protected;
+}, 10, 2);
+
+/**
+ * Ensure meta box shows in Gutenberg by registering it as compatible
+ */
+add_filter('rest_prepare_book', function ($response, $post, $request) {
+    // Add book_authors to the REST response if not already present
+    $author_ids = get_post_meta($post->ID, 'book_authors', true);
+    if (!isset($response->data['meta']['book_authors'])) {
+        $response->data['meta']['book_authors'] = is_array($author_ids) ? $author_ids : [];
+    }
+    return $response;
+}, 10, 3);

@@ -109,4 +109,23 @@ add_action('init', function () {
         'default'      => '',
         'description'  => 'The publication year of the book',
     ]);
+
+    /**
+     * Register 'book_authors' meta field
+     * This stores an array of author post IDs associated with the book
+     */
+    register_post_meta('book', 'book_authors', [
+        'type'         => 'array',
+        'single'       => true,
+        'show_in_rest' => [
+            'schema' => [
+                'type'  => 'array',
+                'items' => [
+                    'type' => 'integer',
+                ],
+            ],
+        ],
+        'default'      => [],
+        'description'  => 'Array of author post IDs associated with this book',
+    ]);
 });
