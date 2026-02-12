@@ -233,23 +233,28 @@
   </div>
 
   {{--
+    Pass WordPress REST API URL and nonce to JavaScript
+    These are needed for making REST API requests to WordPress
+    IMPORTANT: This must come BEFORE @vite to ensure variables are defined
+  --}}
+  <script>
+    // WordPress REST API URL - all API requests go to this endpoint
+    // Example: /wp-json/sage/v1/
+    window.restUrl = <?php echo json_encode(rest_url('sage/v1/')); ?>;
+
+    // REST API nonce - WordPress uses this to verify requests are legitimate
+    // This nonce is sent in the X-WP-Nonce header for authentication
+    window.restNonce = <?php echo json_encode(wp_create_nonce('wp_rest')); ?>;
+
+    console.log('REST URL set to:', window.restUrl);
+    console.log('REST Nonce set to:', window.restNonce);
+  </script>
+
+  {{--
     Include the JavaScript file for AJAX operations
     @vite directive compiles and includes the JavaScript file
   --}}
   @vite('resources/js/books-crud.js')
-
-  {{--
-    Pass WordPress AJAX URL and nonce to JavaScript
-    These are needed for making AJAX requests to WordPress
-  --}}
-  <script>
-    // WordPress AJAX URL - all AJAX requests go to this endpoint
-    window.ajaxUrl = '{{ admin_url('admin-ajax.php') }}';
-
-    // Security nonce - WordPress uses this to verify requests are legitimate
-    // wp_create_nonce() generates a unique token that expires after 24 hours
-    window.bookNonce = '{{ wp_create_nonce('book_crud_nonce') }}';
-  </script>
 
     {{-- Modal for Add Author --}}
     <div id="author-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">

@@ -1,5 +1,6 @@
 /**
  * Books CRUD JavaScript with Author Management
+ * Using WordPress REST API
  */
 
 let allAuthors = []; // Store all authors globally
@@ -8,24 +9,46 @@ let allAuthors = []; // Store all authors globally
  * Load all authors from the server
  */
 function loadAuthors() {
-  const formData = new FormData();
-  formData.append('action', 'get_authors');
-  formData.append('nonce', window.bookNonce);
+  console.log('Loading authors from:', `${window.restUrl}authors`);
+  console.log('Using nonce:', window.restNonce);
 
-  return fetch(window.ajaxUrl, {
-    method: 'POST',
-    body: formData,
+  return fetch(`${window.restUrl}authors`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        allAuthors = data.data;
-        populateAuthorDropdown();
-        return allAuthors;
-      } else {
-        console.error('Failed to load authors');
-        return [];
+    .then((response) => {
+      console.log('Authors response status:', response.status);
+      console.log('Authors response headers:', response.headers.get('content-type'));
+
+      if (!response.ok) {
+        // Log the response for debugging
+        return response.text().then(text => {
+          console.error('Authors response status:', response.status);
+          console.error('Authors response text:', text);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        });
       }
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return response.text().then(text => {
+          console.error('Expected JSON but got:', contentType);
+          console.error('Authors response text:', text);
+          throw new Error('Response is not JSON');
+        });
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+      console.log('Authors data received:', data);
+      allAuthors = data;
+      populateAuthorDropdown();
+      return allAuthors;
     })
     .catch((error) => {
       console.error('Error loading authors:', error);
@@ -57,25 +80,47 @@ function populateAuthorDropdown(selectedIds = []) {
  * Load all books from the server and display them in the table
  */
 function loadBooks() {
-  const formData = new FormData();
-  formData.append('action', 'get_books');
-  formData.append('nonce', window.bookNonce);
+  console.log('Loading books from:', `${window.restUrl}books`);
 
-  fetch(window.ajaxUrl, {
-    method: 'POST',
-    body: formData,
+  fetch(`${window.restUrl}books`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        displayBooks(data.data);
-      } else {
-        showMessage('Failed to load books', 'error');
+    .then((response) => {
+      console.log('Books response status:', response.status);
+      console.log('Books response headers:', response.headers.get('content-type'));
+
+      if (!response.ok) {
+        // Log the response for debugging
+        return response.text().then(text => {
+          console.error('Books response status:', response.status);
+          console.error('Books response text:', text);
+          throw new Error(`HTTP error! status: ${response.status}`);
+        });
       }
+
+      // Check if response is actually JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return response.text().then(text => {
+          console.error('Expected JSON but got:', contentType);
+          console.error('Response text:', text);
+          throw new Error('Response is not JSON');
+        });
+      }
+
+      return response.json();
+    })
+    .then((data) => {
+      console.log('Books data received:', data);
+      displayBooks(data);
     })
     .catch((error) => {
       console.error('Error loading books:', error);
-      showMessage('Error loading books', 'error');
+      showMessage('aaaError loading books', 'error');
     });
 }
 
@@ -222,34 +267,34 @@ function closeAuthorModal() {
  */
 function editBook(bookId) {
   bookId = parseInt(bookId);
-  const formData = new FormData();
-  formData.append('action', 'get_books');
-  formData.append('nonce', window.bookNonce);
 
-  fetch(window.ajaxUrl, {
-    method: 'POST',
-    body: formData,
+  fetch(`${window.restUrl}books/${bookId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        const book = data.data.find((b) => b.id === bookId);
-        if (book) {
-          requestAnimationFrame(() => {
-            document.getElementById('book-id').value = book.id;
-            document.getElementById('book-title').value = book.title;
-            document.getElementById('book-isbn').value = book.isbn;
-            document.getElementById('book-year').value = book.publication_year;
-            document.getElementById('book-description').value = book.description;
-            
-            // Select the authors
-            const authorIds = book.author_ids || [];
-            populateAuthorDropdown(authorIds);
-          });
-
-          openModal(bookId);
-        }
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      return response.json();
+    })
+    .then((book) => {
+      requestAnimationFrame(() => {
+        document.getElementById('book-id').value = book.id;
+        document.getElementById('book-title').value = book.title;
+        document.getElementById('book-isbn').value = book.isbn;
+        document.getElementById('book-year').value = book.publication_year;
+        document.getElementById('book-description').value = book.description;
+
+        // Select the authors
+        const authorIds = book.author_ids || [];
+        populateAuthorDropdown(authorIds);
+      });
+
+      openModal(bookId);
     })
     .catch((error) => {
       console.error('Error loading book:', error);
@@ -265,23 +310,22 @@ function deleteBook(bookId) {
     return;
   }
 
-  const formData = new FormData();
-  formData.append('action', 'delete_book');
-  formData.append('nonce', window.bookNonce);
-  formData.append('id', bookId);
-
-  fetch(window.ajaxUrl, {
-    method: 'POST',
-    body: formData,
+  fetch(`${window.restUrl}books/${bookId}`, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showMessage(data.data.message, 'success');
-        loadBooks();
-      } else {
-        showMessage(data.data.message || 'Failed to delete book', 'error');
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
+      return response.json();
+    })
+    .then((data) => {
+      showMessage(data.message, 'success');
+      loadBooks();
     })
     .catch((error) => {
       console.error('Error deleting book:', error);
@@ -317,28 +361,21 @@ function showMessage(message, type) {
 document.getElementById('book-form').addEventListener('submit', function (e) {
   e.preventDefault();
 
-  const formData = new FormData(this);
   const bookId = document.getElementById('book-id').value;
 
   // Get selected author IDs
   const select = document.getElementById('book-authors');
   const selectedOptions = Array.from(select.selectedOptions);
-  const authorIds = selectedOptions.map(option => option.value);
+  const authorIds = selectedOptions.map(option => parseInt(option.value));
 
-  // Remove the default author_ids[] from formData and add them individually
-  formData.delete('author_ids[]');
-  authorIds.forEach(id => {
-    formData.append('author_ids[]', id);
-  });
-
-  if (bookId) {
-    formData.append('action', 'update_book');
-    formData.append('id', bookId);
-  } else {
-    formData.append('action', 'create_book');
-  }
-
-  formData.append('nonce', window.bookNonce);
+  // Prepare data as JSON
+  const bookData = {
+    title: document.getElementById('book-title').value,
+    description: document.getElementById('book-description').value,
+    isbn: document.getElementById('book-isbn').value,
+    publication_year: document.getElementById('book-year').value,
+    author_ids: authorIds,
+  };
 
   const submitButton = this.querySelector('button[type="submit"]');
   const submitText = document.getElementById('submit-text');
@@ -346,23 +383,33 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
   submitText.textContent = 'Saving...';
   submitButton.disabled = true;
 
-  fetch(window.ajaxUrl, {
-    method: 'POST',
-    body: formData,
+  const url = bookId ? `${window.restUrl}books/${bookId}` : `${window.restUrl}books`;
+  const method = bookId ? 'PUT' : 'POST';
+
+  fetch(url, {
+    method: method,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
+    body: JSON.stringify(bookData),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showMessage(data.data.message, 'success');
-        closeModal();
-        loadBooks();
-      } else {
-        showMessage(data.data.message || 'Failed to save book', 'error');
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'Failed to save book');
+        });
       }
+      return response.json();
+    })
+    .then((data) => {
+      showMessage(data.message, 'success');
+      closeModal();
+      loadBooks();
     })
     .catch((error) => {
       console.error('Error saving book:', error);
-      showMessage('Error saving book', 'error');
+      showMessage(error.message || 'Error saving book', 'error');
     })
     .finally(() => {
       submitText.textContent = originalText;
@@ -376,9 +423,9 @@ document.getElementById('book-form').addEventListener('submit', function (e) {
 document.getElementById('author-form').addEventListener('submit', function (e) {
   e.preventDefault();
 
-  const formData = new FormData(this);
-  formData.append('action', 'create_author');
-  formData.append('nonce', window.bookNonce);
+  const authorData = {
+    name: document.getElementById('author-name').value,
+  };
 
   const submitButton = this.querySelector('button[type="submit"]');
   const submitText = document.getElementById('author-submit-text');
@@ -386,32 +433,39 @@ document.getElementById('author-form').addEventListener('submit', function (e) {
   submitText.textContent = 'Creating...';
   submitButton.disabled = true;
 
-  fetch(window.ajaxUrl, {
+  fetch(`${window.restUrl}authors`, {
     method: 'POST',
-    body: formData,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
+    body: JSON.stringify(authorData),
   })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        showMessage(data.data.message, 'success');
-        closeAuthorModal();
-        // Reload authors and update dropdown
-        loadAuthors().then(() => {
-          // Select the newly created author
-          const newAuthorId = data.data.author.id;
-          const select = document.getElementById('book-authors');
-          const option = Array.from(select.options).find(opt => opt.value == newAuthorId);
-          if (option) {
-            option.selected = true;
-          }
+    .then((response) => {
+      if (!response.ok) {
+        return response.json().then(err => {
+          throw new Error(err.message || 'Failed to create author');
         });
-      } else {
-        showMessage(data.data.message || 'Failed to create author', 'error');
       }
+      return response.json();
+    })
+    .then((data) => {
+      showMessage(data.message, 'success');
+      closeAuthorModal();
+      // Reload authors and update dropdown
+      loadAuthors().then(() => {
+        // Select the newly created author
+        const newAuthorId = data.author.id;
+        const select = document.getElementById('book-authors');
+        const option = Array.from(select.options).find(opt => opt.value == newAuthorId);
+        if (option) {
+          option.selected = true;
+        }
+      });
     })
     .catch((error) => {
       console.error('Error creating author:', error);
-      showMessage('Error creating author', 'error');
+      showMessage(error.message || 'Error creating author', 'error');
     })
     .finally(() => {
       submitText.textContent = originalText;
@@ -450,7 +504,7 @@ document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     const bookModal = document.getElementById('book-modal');
     const authorModal = document.getElementById('author-modal');
-    
+
     if (!bookModal.classList.contains('hidden')) {
       closeModal();
     }

@@ -28,10 +28,17 @@ require_once __DIR__ . '/PostTypes/Book.php';
 require_once __DIR__ . '/PostTypes/Author.php';
 
 /**
- * Load the Book AJAX handlers
- * This sets up all the AJAX endpoints for Create, Read, Update, Delete operations
+ * Load the REST API controllers
+ * This sets up all the REST API endpoints for Create, Read, Update, Delete operations
  */
-require_once __DIR__ . '/Ajax/index.php';
+require_once __DIR__ . '/Api/index.php';
+
+/**
+ * Load the Book AJAX handlers (DEPRECATED - keeping for backward compatibility)
+ * This sets up all the AJAX endpoints for Create, Read, Update, Delete operations
+ * TODO: Remove this once all code is migrated to REST API
+ */
+// require_once __DIR__ . '/Ajax/index.php';
 
 /**
  * Load the Book meta boxes using Meta Box plugin
