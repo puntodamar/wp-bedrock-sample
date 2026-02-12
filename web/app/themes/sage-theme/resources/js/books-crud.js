@@ -134,7 +134,7 @@ function displayBooks(books) {
   if (books.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+        <td colspan="5" class="px-6 py-8 text-center text-gray-500">
           <div class="flex flex-col items-center">
             <svg class="h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
@@ -151,10 +151,6 @@ function displayBooks(books) {
   books.forEach((book) => {
     const row = document.createElement('tr');
     row.className = 'hover:bg-gray-50 transition duration-150';
-
-    const shortDescription = book.description.length > 100
-      ? book.description.substring(0, 100) + '...'
-      : book.description;
 
     // Format authors as comma-separated list
     const authorNames = book.authors && book.authors.length > 0
@@ -174,11 +170,18 @@ function displayBooks(books) {
       <td class="px-6 py-4 whitespace-nowrap">
         <div class="text-sm text-gray-600">${escapeHtml(book.publication_year)}</div>
       </td>
-      <td class="px-6 py-4">
-        <div class="text-sm text-gray-600 max-w-xs">${escapeHtml(shortDescription)}</div>
-      </td>
       <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div class="flex space-x-2">
+          <button
+            onclick="viewBook(${book.id})"
+            class="text-green-600 hover:text-green-900 transition duration-150"
+            title="View book details"
+          >
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          </button>
           <button
             onclick="editBook(${book.id})"
             class="text-blue-600 hover:text-blue-900 transition duration-150"
@@ -245,6 +248,32 @@ function closeModal() {
 }
 
 /**
+ * Open the view modal to display book details
+ */
+function openViewModal(book) {
+  const modal = document.getElementById('view-modal');
+
+  // Populate the modal with book data
+  document.getElementById('view-title').textContent = book.title;
+  document.getElementById('view-authors').textContent = book.authors && book.authors.length > 0
+    ? book.authors.map(a => a.name).join(', ')
+    : 'No authors';
+  document.getElementById('view-isbn').textContent = book.isbn || 'N/A';
+  document.getElementById('view-year').textContent = book.publication_year || 'N/A';
+  document.getElementById('view-description').textContent = book.description || 'No description available';
+
+  modal.classList.remove('hidden');
+}
+
+/**
+ * Close the view modal
+ */
+function closeViewModal() {
+  const modal = document.getElementById('view-modal');
+  modal.classList.add('hidden');
+}
+
+/**
  * Open the author modal
  */
 function openAuthorModal() {
@@ -260,6 +289,34 @@ function openAuthorModal() {
 function closeAuthorModal() {
   const modal = document.getElementById('author-modal');
   modal.classList.add('hidden');
+}
+
+/**
+ * View a book's full details
+ */
+function viewBook(bookId) {
+  bookId = parseInt(bookId);
+
+  fetch(`${window.restUrl}books/${bookId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-WP-Nonce': window.restNonce,
+    },
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then((book) => {
+      openViewModal(book);
+    })
+    .catch((error) => {
+      console.error('Error loading book:', error);
+      showMessage('Error loading book details', 'error');
+    });
 }
 
 /**
@@ -491,6 +548,12 @@ document.getElementById('book-modal').addEventListener('click', function (e) {
   }
 });
 
+document.getElementById('view-modal').addEventListener('click', function (e) {
+  if (e.target === this) {
+    closeViewModal();
+  }
+});
+
 document.getElementById('author-modal').addEventListener('click', function (e) {
   if (e.target === this) {
     closeAuthorModal();
@@ -503,10 +566,14 @@ document.getElementById('author-modal').addEventListener('click', function (e) {
 document.addEventListener('keydown', function (e) {
   if (e.key === 'Escape') {
     const bookModal = document.getElementById('book-modal');
+    const viewModal = document.getElementById('view-modal');
     const authorModal = document.getElementById('author-modal');
 
     if (!bookModal.classList.contains('hidden')) {
       closeModal();
+    }
+    if (!viewModal.classList.contains('hidden')) {
+      closeViewModal();
     }
     if (!authorModal.classList.contains('hidden')) {
       closeAuthorModal();
@@ -516,8 +583,10 @@ document.addEventListener('keydown', function (e) {
 
 // Export functions to window for onclick handlers
 window.openModal = openModal;
+window.viewBook = viewBook;
 window.editBook = editBook;
 window.closeModal = closeModal;
+window.closeViewModal = closeViewModal;
 window.deleteBook = deleteBook;
 window.openAuthorModal = openAuthorModal;
 window.closeAuthorModal = closeAuthorModal;

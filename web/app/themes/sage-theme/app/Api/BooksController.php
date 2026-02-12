@@ -76,7 +76,8 @@ class BooksController
         if ($query->have_posts()) {
             while ($query->have_posts()) {
                 $query->the_post();
-                $books[] = self::prepare_book_response(get_the_ID());
+                // Exclude description from list view for better performance
+                $books[] = self::prepare_book_response(get_the_ID(), false);
             }
             wp_reset_postdata();
         }
@@ -96,7 +97,8 @@ class BooksController
             return new WP_Error('book_not_found', 'Book not found', ['status' => 404]);
         }
 
-        return new WP_REST_Response(self::prepare_book_response($post_id), 200);
+        // Include description in single book view
+        return new WP_REST_Response(self::prepare_book_response($post_id, true), 200);
     }
 
     /**
@@ -212,8 +214,11 @@ class BooksController
 
     /**
      * Prepare book data for response
+     *
+     * @param int  $post_id          The book post ID
+     * @param bool $include_description Whether to include the description field
      */
-    private static function prepare_book_response(int $post_id): array
+    private static function prepare_book_response(int $post_id, bool $include_description = true): array
     {
         $author_ids = get_post_meta($post_id, 'book_authors', true);
         if (!is_array($author_ids)) {
@@ -232,21 +237,26 @@ class BooksController
             }
         }
 
-        $description = get_post_meta($post_id, 'book_description', true);
-        if (empty($description)) {
-            $post = get_post($post_id);
-            $description = $post->post_content ?? '';
-        }
-
-        return [
+        $response = [
             'id'               => $post_id,
             'title'            => get_the_title($post_id),
-            'description'      => $description,
             'authors'          => $authors,
             'author_ids'       => $author_ids,
             'isbn'             => get_post_meta($post_id, 'isbn', true),
             'publication_year' => get_post_meta($post_id, 'publication_year', true),
         ];
+
+        // Only include description when requested (single book view)
+        if ($include_description) {
+            $description = get_post_meta($post_id, 'book_description', true);
+            if (empty($description)) {
+                $post = get_post($post_id);
+                $description = $post->post_content ?? '';
+            }
+            $response['description'] = $description;
+        }
+
+        return $response;
     }
 
     /**

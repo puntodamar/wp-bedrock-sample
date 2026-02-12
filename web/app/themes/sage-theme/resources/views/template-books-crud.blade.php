@@ -66,7 +66,6 @@
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Author</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ISBN</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Year</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
               <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -77,7 +76,7 @@
           <tbody id="books-table-body" class="bg-white divide-y divide-gray-200">
             {{-- Loading state --}}
             <tr id="loading-row">
-              <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+              <td colspan="5" class="px-6 py-4 text-center text-gray-500">
                 <div class="flex items-center justify-center">
                   <svg class="animate-spin h-5 w-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -255,6 +254,55 @@
     @vite directive compiles and includes the JavaScript file
   --}}
   @vite('resources/js/books-crud.js')
+
+    {{-- Modal for View Book Details --}}
+    <div id="view-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-lg bg-white">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-2xl font-bold text-gray-900">Book Details</h3>
+          <button onclick="closeViewModal()" class="text-gray-400 hover:text-gray-600 transition duration-150">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Title</label>
+            <p id="view-title" class="text-lg font-semibold text-gray-900"></p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Authors</label>
+            <p id="view-authors" class="text-gray-900"></p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">ISBN</label>
+              <p id="view-isbn" class="text-gray-900"></p>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Publication Year</label>
+              <p id="view-year" class="text-gray-900"></p>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <p id="view-description" class="text-gray-900 whitespace-pre-wrap"></p>
+          </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+          <button onclick="closeViewModal()" class="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition duration-150">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
 
     {{-- Modal for Add Author --}}
     <div id="author-modal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
